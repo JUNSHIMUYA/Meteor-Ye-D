@@ -395,8 +395,8 @@ void print_linear(myType var, string type)
 	}
 }
 
-extern void funcReconstruct(const RSSVectorMyType &a, vector<myType> &b, size_t size, string str, bool print);
-void print_vector(RSSVectorMyType &var, string type, string pre_text, int print_nos)
+extern void funcReconstruct(const ASSVectorMyType &a, vector<myType> &b, size_t size, string str, bool print);
+void print_vector(ASSVectorMyType &var, string type, string pre_text, int print_nos)
 {
 	size_t temp_size = var.size();
 	vector<myType> b(temp_size);
@@ -410,7 +410,7 @@ void print_vector(RSSVectorMyType &var, string type, string pre_text, int print_
 	cout << endl;
 }
 
-extern void funcReconstruct(const RSSVectorSmallType &a, vector<smallType> &b, size_t size, string str, bool print);
+extern void funcReconstruct(const ASSVectorSmallType &a, vector<smallType> &b, size_t size, string str, bool print);
 /*
 void print_vector(RSSVectorSmallType &var, string type, string pre_text, int print_nos)
 {
@@ -426,11 +426,12 @@ void print_vector(RSSVectorSmallType &var, string type, string pre_text, int pri
 	cout << endl;
 }
 */
-// meteor matrxi mult, without eigen.
-void matrixMultMeteor(const MEVectorType &a, const MEVectorType &b, RSSVectorMyType &temp3, size_t rows, size_t common_dim, size_t columns, size_t transpose_a, size_t transpose_b){
+// MSS matrxi mult, without eigen.
+void matrixMultMSS(const MSSVectorType &a, const  ASSVectorMyType &b, ASSVectorMyType &temp3, size_t rows, size_t common_dim, size_t columns, size_t transpose_a, size_t transpose_b){
 
 #if (!USING_EIGEN)
-	MEVectorType tmp_a(rows*common_dim), tmp_b(common_dim*columns);
+	MSSVectorType tmp_a(rows*common_dim);
+	ASSVectorMyType tmp_b(common_dim*columns);
 
 	for (size_t i=0; i < rows; i++){
 		for (size_t j = 0; j < common_dim; j++){
@@ -454,24 +455,16 @@ void matrixMultMeteor(const MEVectorType &a, const MEVectorType &b, RSSVectorMyT
 	}
 	for (int i = 0; i < rows; i++){
 		for (int j = 0; j < columns; j++){
-			temp3[i*columns+j].first=0;
-			temp3[i*columns+j].second=0;
+			temp3[i*columns+j] =0;
 			for(int k = 0; k < common_dim; k++){
-				temp3[i*columns+j].first += (tmp_a[i*common_dim+k].first * tmp_b[k*columns+j].second.first) +
-											(tmp_a[i*common_dim+k].second.first) * tmp_b[k*columns+j].first + 0 - 0;
-				
-				temp3[i*columns+j].second += (tmp_a[i*common_dim+k].first) * tmp_b[k*columns+j].second.second +
-											 (tmp_a[i*common_dim+k].second.second) * tmp_b[k*columns+j].first + 0 - 0;
+				temp3[i*columns+j] += (tmp_a[i*common_dim+k].first * tmp_b[k*columns+j]) - 0 + 0;
 
 				//cout << tmp_a[i*common_dim+k].first * tmp_b[k*columns+j].second.first + tmp_a[i*common_dim+k].second.first * tmp_b[k*columns+j].first + 0 + 0 << endl;
 				//cout << temp3[i*columns+j].second << endl;
 				
-				if (partyNum == PARTY_A){
+				if (partyNum == PARTY_B){
 					//cout << tmp_a[i*common_dim+k].first * tmp_b[k*columns+j].first << endl;
-					temp3[i*columns+j].first += tmp_a[i*common_dim+k].first * tmp_b[k*columns+j].first;
-				}
-				if (partyNum == PARTY_C){
-					temp3[i*columns+j].second += tmp_a[i*common_dim+k].first * tmp_b[k*columns+j].first;
+					temp3[i*columns+j] +=  (tmp_a[i*common_dim+k].first * 0) - 0 + 0;
 				}
 				
 			}
@@ -484,108 +477,6 @@ void matrixMultMeteor(const MEVectorType &a, const MEVectorType &b, RSSVectorMyT
 
 	eigenMatrix eigen_a(rows, common_dim), eigen_b(common_dim, columns), eigen_c(rows, columns);
 	
-	for (size_t i = 0; i < rows; ++i)
-	{
-		for (size_t j = 0; j < common_dim; ++j)
-		{
-			if (transpose_a)
-			{
-				eigen_a.m_share[0](i, j) = a[j*rows + i].first;
-				eigen_a.m_share[1](i, j) = a[j*rows + i].second.first;
-				eigen_a.m_share[2](i, j) = a[j*rows + i].second.second;
-
-			}
-			else
-			{
-				eigen_a.m_share[0](i, j) = a[i*common_dim + j].first;
-				eigen_a.m_share[1](i, j) = a[i*common_dim + j].second.first;
-				eigen_a.m_share[2](i, j) = a[i*common_dim + j].second.second;
-
-			}
-		}
-	}
-
-	for (size_t i = 0; i < common_dim; ++i)
-	{
-		for (size_t j = 0; j < columns; ++j)
-		{
-			if (transpose_b)
-			{
-				eigen_b.m_share[0](i, j) = b[j*common_dim + i].first;	
-				eigen_b.m_share[1](i, j) = b[j*common_dim + i].second.first;
-				eigen_b.m_share[2](i, j) = b[j*common_dim + i].second.second;	
-
-			}
-			else
-			{
-				eigen_b.m_share[0](i, j) = b[i*columns + j].first;	
-				eigen_b.m_share[1](i, j) = b[i*columns + j].second.first;	
-				eigen_b.m_share[2](i, j) = b[i*columns + j].second.second;				
-			}
-		}
-	}
-	
-	eigen_c = eigen_a * eigen_b;
-
-	for (size_t i = 0; i < rows; ++i){
-		for (size_t j = 0; j < columns; ++j){
-				temp3[i*columns + j].first = eigen_c.m_share[1](i,j);
-				temp3[i*columns + j].second = eigen_c.m_share[2](i,j);
-		}
-	}
-#endif
-
-}
-
-void matrixMultRSS(const RSSVectorMyType &a, const RSSVectorMyType &b, vector<myType> &temp3, 
-					size_t rows, size_t common_dim, size_t columns,
-				 	size_t transpose_a, size_t transpose_b)
-{
-#if (!USING_EIGEN)
-/********************************* Triple For Loop *********************************/
-	RSSVectorMyType triple_a(rows*common_dim), triple_b(common_dim*columns);
-
-    for (size_t i = 0; i < rows; ++i)
-    {
-        for (size_t j = 0; j < common_dim; ++j)
-        {
-            if (transpose_a)
-                triple_a[i*common_dim + j] = a[j*rows + i];
-            else
-                triple_a[i*common_dim + j] = a[i*common_dim + j];
-        }
-    }
- 
-    for (size_t i = 0; i < common_dim; ++i)
-    {
-        for (size_t j = 0; j < columns; ++j)
-        {
-            if (transpose_b)
-                triple_b[i*columns + j] = b[j*common_dim + i];  
-            else
-                triple_b[i*columns + j] = b[i*columns + j]; 
-        }
-    }
- 
-    for (int i = 0; i < rows; ++i)
-    {
-        for (int j = 0; j < columns; ++j)
-        {
-            temp3[i*columns + j] = 0;
-            for (int k = 0; k < common_dim; ++k)
-            {
-                temp3[i*columns + j] += triple_a[i*common_dim + k].first * triple_b[k*columns + j].first +
-                                        2 * triple_a[i*common_dim + k].first * triple_b[k*columns + j].second +
-                                        2 * triple_a[i*common_dim + k].second * triple_b[k*columns + j].first;
-            }
-        }
-    }
-/********************************* Triple For Loop *********************************/	
-#endif
-#if (USING_EIGEN)
-/********************************* WITH EIGEN Mat-Mul *********************************/
-	eigenMatrix eigen_a(rows, common_dim), eigen_b(common_dim, columns), eigen_c(rows, columns);
-
 	for (size_t i = 0; i < rows; ++i)
 	{
 		for (size_t j = 0; j < common_dim; ++j)
@@ -609,25 +500,121 @@ void matrixMultRSS(const RSSVectorMyType &a, const RSSVectorMyType &b, vector<my
 		{
 			if (transpose_b)
 			{
-				eigen_b.m_share[0](i, j) = b[j*common_dim + i].first;	
-				eigen_b.m_share[1](i, j) = b[j*common_dim + i].second;	
+				eigen_b.m_share[0](i, j) = b[j*common_dim + i];	
+				//eigen_b.m_share[1](i, j) = 0;
 			}
 			else
 			{
-				eigen_b.m_share[0](i, j) = b[i*columns + j].first;	
-				eigen_b.m_share[1](i, j) = b[i*columns + j].second;	
+				eigen_b.m_share[0](i, j) = b[i*columns + j];	
+				//eigen_b.m_share[1](i, j) = 0;
 			}
 		}
 	}
-
+	
 	eigen_c = eigen_a * eigen_b;
+	//cout<<"c1"<<endl;
 
-	for (size_t i = 0; i < rows; ++i)
-		for (size_t j = 0; j < columns; ++j)
-				temp3[i*columns + j] = eigen_c.m_share[0](i,j);
-/********************************* WITH EIGEN Mat-Mul *********************************/
+	for (size_t i = 0; i < rows; ++i){
+		for (size_t j = 0; j < columns; ++j){
+				temp3[i*columns + j] = eigen_c.m_share[1](i,j);	
+				
+		}
+	}
 #endif
+
 }
+
+// void matrixMultRSS(const RSSVectorMyType &a, const RSSVectorMyType &b, vector<myType> &temp3, 
+// 					size_t rows, size_t common_dim, size_t columns,
+// 				 	size_t transpose_a, size_t transpose_b)
+// {
+// #if (!USING_EIGEN)
+// /********************************* Triple For Loop *********************************/
+// 	RSSVectorMyType triple_a(rows*common_dim), triple_b(common_dim*columns);
+
+//     for (size_t i = 0; i < rows; ++i)
+//     {
+//         for (size_t j = 0; j < common_dim; ++j)
+//         {
+//             if (transpose_a)
+//                 triple_a[i*common_dim + j] = a[j*rows + i];
+//             else
+//                 triple_a[i*common_dim + j] = a[i*common_dim + j];
+//         }
+//     }
+ 
+//     for (size_t i = 0; i < common_dim; ++i)
+//     {
+//         for (size_t j = 0; j < columns; ++j)
+//         {
+//             if (transpose_b)
+//                 triple_b[i*columns + j] = b[j*common_dim + i];  
+//             else
+//                 triple_b[i*columns + j] = b[i*columns + j]; 
+//         }
+//     }
+ 
+//     for (int i = 0; i < rows; ++i)
+//     {
+//         for (int j = 0; j < columns; ++j)
+//         {
+//             temp3[i*columns + j] = 0;
+//             for (int k = 0; k < common_dim; ++k)
+//             {
+//                 temp3[i*columns + j] += triple_a[i*common_dim + k].first * triple_b[k*columns + j].first +
+//                                         2 * triple_a[i*common_dim + k].first * triple_b[k*columns + j].second +
+//                                         2 * triple_a[i*common_dim + k].second * triple_b[k*columns + j].first;
+//             }
+//         }
+//     }
+// /********************************* Triple For Loop *********************************/	
+// #endif
+// #if (USING_EIGEN)
+// /********************************* WITH EIGEN Mat-Mul *********************************/
+// 	eigenMatrix eigen_a(rows, common_dim), eigen_b(common_dim, columns), eigen_c(rows, columns);
+
+// 	for (size_t i = 0; i < rows; ++i)
+// 	{
+// 		for (size_t j = 0; j < common_dim; ++j)
+// 		{
+// 			if (transpose_a)
+// 			{
+// 				eigen_a.m_share[0](i, j) = a[j*rows + i].first;
+// 				eigen_a.m_share[1](i, j) = a[j*rows + i].second;
+// 			}
+// 			else
+// 			{
+// 				eigen_a.m_share[0](i, j) = a[i*common_dim + j].first;
+// 				eigen_a.m_share[1](i, j) = a[i*common_dim + j].second;
+// 			}
+// 		}
+// 	}
+
+// 	for (size_t i = 0; i < common_dim; ++i)
+// 	{
+// 		for (size_t j = 0; j < columns; ++j)
+// 		{
+// 			if (transpose_b)
+// 			{
+// 				eigen_b.m_share[0](i, j) = b[j*common_dim + i].first;	
+// 				eigen_b.m_share[1](i, j) = b[j*common_dim + i].second;	
+// 			}
+// 			else
+// 			{
+// 				eigen_b.m_share[0](i, j) = b[i*columns + j].first;	
+// 				eigen_b.m_share[1](i, j) = b[i*columns + j].second;	
+// 			}
+// 		}
+// 	}
+
+// 	eigen_c = eigen_a * eigen_b;
+
+// 	for (size_t i = 0; i < rows; ++i)
+// 		for (size_t j = 0; j < columns; ++j)
+// 				temp3[i*columns + j] = eigen_c.m_share[0](i,j);
+// /********************************* WITH EIGEN Mat-Mul *********************************/
+// #endif
+// }
 
 
 
@@ -654,6 +641,29 @@ void dividePlain(vector<myType> &vec, int divisor)
 			vec[i] = (myType)((double)((int64_t)vec[i])/(double)((int64_t)divisor)); 
 }
 
+
+MSSVectorType fecVec(vector<uint64_t>&f){
+	MSSVectorType res;
+	for(int i = 0;i < f.size(); i++)
+	{
+		res.push_back({f[i]*1000,0});
+	}
+	return res;
+}
+
+vector<uint64_t> bitdecom(myType a, int Length)
+{
+	
+    vector<uint64_t>result(Length, 0);
+    for(int i = 0; i < Length; i++){
+        if(a%2 == 0){ result[i] = 0; }
+        else {result[i] = 1;}
+        a = a >> 1;
+    }
+	reverse(result.begin(), result.end());
+    return result;
+}
+
 size_t nextParty(size_t party)
 {
 	size_t ret;
@@ -662,10 +672,10 @@ size_t nextParty(size_t party)
 	{
     case PARTY_A : ret = PARTY_B;
              break;       
-    case PARTY_B : ret = PARTY_C;
+    case PARTY_B : ret = PARTY_A;
              break;
-    case PARTY_C : ret = PARTY_A;
-             break;       
+    // case PARTY_C : ret = PARTY_A;
+    //          break;       
 	}	
 	return ret;	
 }
@@ -686,30 +696,17 @@ size_t prevParty(size_t party)
 	return ret;	
 }
 
-void wrapAround(const vector<myType> &a, const vector<myType> &b, 
-				vector<smallType> &c, size_t size)
-{
-	for (size_t i = 0; i < size; ++i)
-		c[i] = wrapAround(a[i], b[i]);
-}
-
-void wrap3(const RSSVectorMyType &a, const vector<myType> &b, 
-				vector<smallType> &c, size_t size)
-{
-	for (size_t i = 0; i < size; ++i)
-		c[i] = wrap3(a[i].first, a[i].second, b[i]);
-}
 
 
-void multiplyByScalar(const RSSVectorMyType &a, size_t scalar, RSSVectorMyType &b)
-{
-	size_t size = a.size();
-	for (int i = 0; i < size; ++i)
-	{
-		b[i].first  = a[i].first * scalar;
-		b[i].second  = a[i].second * scalar;
-	}
-}
+// void multiplyByScalar(const RSSVectorMyType &a, size_t scalar, RSSVectorMyType &b)
+// {
+// 	size_t size = a.size();
+// 	for (int i = 0; i < size; ++i)
+// 	{
+// 		b[i].first  = a[i].first * scalar;
+// 		b[i].second  = a[i].second * scalar;
+// 	}
+// }
 
 //a is just a vector, b has to be a matrix of size rows*columns 
 //such that b read columns wise is the same as a.
@@ -723,23 +720,23 @@ void multiplyByScalar(const RSSVectorMyType &a, size_t scalar, RSSVectorMyType &
 
 //a is zero padded into b (initialized to zeros) with parameters as passed:
 //imageWidth, imageHeight, padding, inputFilters, batchSize
-void zeroPad(const MEVectorType &a, MEVectorType &b, 
-			size_t iw, size_t ih, size_t P, size_t Din, size_t B)
-{
-	size_t size_B 	= (iw+2*P)*(ih+2*P)*Din;
-	size_t size_Din = (iw+2*P)*(ih+2*P);
-	size_t size_w 	= (iw+2*P);
+// void zeroPad(const MEVectorType &a, MEVectorType &b, 
+// 			size_t iw, size_t ih, size_t P, size_t Din, size_t B)
+// {
+// 	size_t size_B 	= (iw+2*P)*(ih+2*P)*Din;
+// 	size_t size_Din = (iw+2*P)*(ih+2*P);
+// 	size_t size_w 	= (iw+2*P);
 
-	for (size_t i = 0; i < B; ++i)
-		for (size_t j = 0; j < Din; ++j) 
-			for (size_t k = 0; k < ih; ++k)
-				for (size_t l = 0; l < iw; ++l)
-				{
-					b[i*size_B + j*size_Din + (k+P)*size_w + l + P].first = a[i*Din*iw*ih + j*iw*ih + k*iw + l].first;
-					b[i*size_B + j*size_Din + (k+P)*size_w + l + P].second = a[i*Din*iw*ih + j*iw*ih + k*iw + l].second;
+// 	for (size_t i = 0; i < B; ++i)
+// 		for (size_t j = 0; j < Din; ++j) 
+// 			for (size_t k = 0; k < ih; ++k)
+// 				for (size_t l = 0; l < iw; ++l)
+// 				{
+// 					b[i*size_B + j*size_Din + (k+P)*size_w + l + P].first = a[i*Din*iw*ih + j*iw*ih + k*iw + l].first;
+// 					b[i*size_B + j*size_Din + (k+P)*size_w + l + P].second = a[i*Din*iw*ih + j*iw*ih + k*iw + l].second;
 
-				}
-}
+// 				}
+// }
 
 // //vec1 is reshaped for a "convolutional multiplication" with the following params:  
 // //imageWidth, imageHeight, padding, inputFilters, stride, batchSize

@@ -163,12 +163,12 @@ string which_network(string network);
 
 void print_myType(myType var, string message, string type);
 void print_linear(myType var, string type);
-void print_vector(RSSVectorMyType &var, string type, string pre_text, int print_nos);
-void print_vector(RSSVectorSmallType &var, string type, string pre_text, int print_nos);
-void matrixMultRSS(const RSSVectorMyType &a, const RSSVectorMyType &b, vector<myType> &temp3, 
-					size_t rows, size_t common_dim, size_t columns,
-				 	size_t transpose_a, size_t transpose_b);
-void matrixMultMeteor(const MEVectorType &a, const MEVectorType &b, RSSVectorMyType &temp3, size_t rows, size_t common_dim, size_t columns, size_t transpose_a, size_t transpose_b);
+void print_vector(ASSVectorMyType &var, string type, string pre_text, int print_nos);
+void print_vector(ASSVectorSmallType &var, string type, string pre_text, int print_nos);
+// void matrixMultRSS(const RSSVectorMyType &a, const RSSVectorMyType &b, vector<myType> &temp3, 
+// 					size_t rows, size_t common_dim, size_t columns,
+// 				 	size_t transpose_a, size_t transpose_b);
+void matrixMultMSS(const MSSVectorType &a, const ASSVectorMyType &b, ASSVectorMyType &temp3, size_t rows, size_t common_dim, size_t columns, size_t transpose_a, size_t transpose_b);
 
 
 myType dividePlain(myType a, int b);
@@ -177,81 +177,62 @@ void dividePlain(vector<myType> &vec, int divisor);
 size_t nextParty(size_t party);
 size_t prevParty(size_t party);
 
-
-inline smallType getMSB(myType a)
-{return ((smallType)((a >> (BIT_SIZE - 1)) & 1));}
-
-inline RSSSmallType addModPrime(RSSSmallType a, RSSSmallType b)
-{
-	RSSSmallType ret;
-	ret.first = additionModPrime[a.first][b.first];
-	ret.second = additionModPrime[a.second][b.second]; 
-	return ret;
-}
-
-inline smallType subModPrime(smallType a, smallType b)
-{return subtractModPrime[a][b];}
-
-inline RSSSmallType subConstModPrime(RSSSmallType a, const smallType r)
-{
-	RSSSmallType ret = a;
-	switch(partyNum)
-	{
-		case PARTY_A: ret.first = subtractModPrime[a.first][r];
-					  break;       
-		case PARTY_C: ret.second = subtractModPrime[a.second][r];
-					  break;
-	}		
-	return ret;
-}
-
-inline RSSSmallType XORPublicModPrime(RSSSmallType a, bool r)
-{
-	RSSSmallType ret;
-	if (r == 0)
-		ret = a;
-	else
-	{
-		switch(partyNum)
-		{
-			case PARTY_A: ret.first = subtractModPrime[1][a.first];
-						  ret.second = subtractModPrime[0][a.second];
-						  break;       
-			case PARTY_B: ret.first = subtractModPrime[0][a.first];
-						  ret.second = subtractModPrime[0][a.second];
-						  break;
-			case PARTY_C: ret.first = subtractModPrime[0][a.first];
-						  ret.second = subtractModPrime[1][a.second];
-						  break;
-		}
-	}
-	return ret;
-}
+//feature treat
+MSSVectorType fecVec(vector<uint64_t>&f);
+//bitdecom
+vector<uint64_t> bitdecom(myType a, int Length);
 
 
-inline smallType wrapAround(myType a, myType b)
-{return (a > MINUS_ONE - b);}
+// inline smallType getMSB(myType a)
+// {return ((smallType)((a >> (BIT_SIZE - 1)) & 1));}
 
-inline smallType wrap3(myType a, myType b, myType c)
-{
-	myType temp = a+b;
-	if (wrapAround(a,b))
-		return 1 - wrapAround(temp, c);
-	else 
-		return wrapAround(temp, c);
-}
+// inline RSSSmallType addModPrime(RSSSmallType a, RSSSmallType b)
+// {
+// 	RSSSmallType ret;
+// 	ret.first = additionModPrime[a.first][b.first];
+// 	ret.second = additionModPrime[a.second][b.second]; 
+// 	return ret;
+// }
 
-void wrapAround(const vector<myType> &a, const vector<myType> &b, 
-				vector<smallType> &c, size_t size);
-void wrap3(const RSSVectorMyType &a, const vector<myType> &b, 
-				vector<smallType> &c, size_t size);
+// inline smallType subModPrime(smallType a, smallType b)
+// {return subtractModPrime[a][b];}
 
-void multiplyByScalar(const RSSVectorMyType &a, size_t scalar, RSSVectorMyType &b);
-// void transposeVector(const RSSVectorMyType &a, RSSVectorMyType &b, size_t rows, size_t columns);
-void zeroPad(const MEVectorType &a, MEVectorType &b, 
-			size_t iw, size_t ih, size_t f, size_t Din, size_t B);
-// void convToMult(const RSSVectorMyType &vec1, RSSVectorMyType &vec2, 
-// 				size_t iw, size_t ih, size_t f, size_t Din, size_t S, size_t B);
+// inline RSSSmallType subConstModPrime(RSSSmallType a, const smallType r)
+// {
+// 	RSSSmallType ret = a;
+// 	switch(partyNum)
+// 	{
+// 		case PARTY_A: ret.first = subtractModPrime[a.first][r];
+// 					  break;       
+// 		case PARTY_C: ret.second = subtractModPrime[a.second][r];
+// 					  break;
+// 	}		
+// 	return ret;
+// }
+
+// inline RSSSmallType XORPublicModPrime(RSSSmallType a, bool r)
+// {
+// 	RSSSmallType ret;
+// 	if (r == 0)
+// 		ret = a;
+// 	else
+// 	{
+// 		switch(partyNum)
+// 		{
+// 			case PARTY_A: ret.first = subtractModPrime[1][a.first];
+// 						  ret.second = subtractModPrime[0][a.second];
+// 						  break;       
+// 			case PARTY_B: ret.first = subtractModPrime[0][a.first];
+// 						  ret.second = subtractModPrime[0][a.second];
+// 						  break;
+// 			case PARTY_C: ret.first = subtractModPrime[0][a.first];
+// 						  ret.second = subtractModPrime[1][a.second];
+// 						  break;
+// 		}
+// 	}
+// 	return ret;
+// }
+
 
 
 

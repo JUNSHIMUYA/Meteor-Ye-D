@@ -74,12 +74,16 @@ void initializeCommunicationSerial(int* ports)//Use this for many parties
 		if (i<partyNum)
 		{
 		  initCommunication( addrs[i], ports[i * 2 + 1], i, 0);
+		  //cout<<"P "<<partyNum<<" C "<<i<<" port "<<ports[i * 2 + 1]<<endl;
 		  initCommunication("127.0.0.1", ports[i * 2], i, 1);
+		 // cout<<"P "<<partyNum<<" L "<<" port "<<ports[i * 2]<<endl;
 		}
 		else if (i>partyNum)
 		{
 		  initCommunication("127.0.0.1", ports[i * 2], i, 1);
+		 // cout<<"P "<<partyNum<<" L "<<" port "<<ports[i * 2]<<endl;
 		  initCommunication( addrs[i], ports[i * 2 + 1], i, 0);
+		   //cout<<"P "<<partyNum<<" C "<<i<<" port "<<ports[i * 2 + 1]<<endl;
 		}
 	}
 }

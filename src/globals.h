@@ -25,11 +25,13 @@
 #define STRING_BUFFER_SIZE 256
 #define PARALLEL false
 #define NO_CORES 8
+//#define MSS_BOUND 1048576 //2^20
+#define MSS_BOUND 1099511627776 //2^40 
 
 
 
 /********************* MPC globals *********************/
-#define NUM_OF_PARTIES 3
+#define NUM_OF_PARTIES 2
 #define PARTY_A 0
 #define PARTY_B 1
 #define PARTY_C 2
@@ -54,20 +56,32 @@
 /********************* Typedefs and others *********************/
 typedef uint64_t myType;
 typedef uint8_t smallType;
-typedef std::pair<myType, myType> RSSMyType;
-typedef std::pair<smallType, smallType> RSSSmallType;
-typedef std::vector<RSSMyType> RSSVectorMyType;
-typedef std::vector<RSSSmallType> RSSVectorSmallType;
+//typedef std::pair<myType, myType> RSSMyType;
+//typedef std::pair<smallType, smallType> RSSSmallType;
+//typedef std::vector<RSSMyType> RSSVectorMyType;
+//typedef std::vector<RSSSmallType> RSSVectorSmallType;
+
+//MSS
+typedef std::vector<myType> ASSVectorMyType;
+typedef std::vector<smallType> ASSVectorSmallType;
 
 // define the data structure for Meteor, this is for Arithmetic Sharing.
-typedef std::pair<myType, RSSMyType> METype;
-typedef std::vector<METype> MEVectorType;
-typedef std::pair<smallType, RSSSmallType> MESmallType;
-typedef std::vector<MESmallType> MEVectorSmallType;
+//typedef std::pair<myType, RSSMyType> METype;
+//typedef std::vector<METype> MEVectorType;
+//typedef std::pair<smallType, RSSSmallType> MESmallType;
+//typedef std::vector<MESmallType> MEVectorSmallType;
+
+//MSS
+typedef std::pair<myType, myType> MSSType;
+typedef std::vector<MSSType> MSSVectorType;
+typedef std::pair<smallType, smallType> MSSSmallType;
+typedef std::vector<MSSSmallType> MSSVectorSmallType;
 
 const int BIT_SIZE = (sizeof(myType) * CHAR_BIT);
 const myType LARGEST_NEG = ((myType)1 << (BIT_SIZE - 1));
 const myType MINUS_ONE = (myType)-1;
 const smallType BOUNDARY = (256/PRIME_NUMBER) * PRIME_NUMBER;
+
+
 
 #endif
